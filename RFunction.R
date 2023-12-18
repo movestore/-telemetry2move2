@@ -1,10 +1,20 @@
 library('move2')
 library('ctmm')
 
-# data <- readRDS("./data/raw/input1_telemetry.list.rds")
 # input: telemetry.list - output: move2_loc
 rFunction = function(data) {
-  mv2 <- mt_as_move2(data)
+  ## converting ordered factor variables into factors to be able to join in to move2 "stack". Probably only affected variables are: argos_nopc and argos_lc, but just in case keeping it general
+  telem <- lapply(data, function(tl){
+    for(x in 1:length(tl@.Data)){
+      if(all(any(class(tl@.Data[[x]])=="ordered")& any(class(tl@.Data[[x]])=="factor"))){
+        tl@.Data[[x]] <- factor(tl@.Data[[x]],ordered = F)
+      }
+    }
+    return(tl)
+  })
+  mv2 <- mt_as_move2(telem)
+  # mv2 <- mt_as_move2(data)
+  
   # mv2_L <- lapply(data, function(x){
   #   telem2df <- data.frame(x)
   #   telem2df$trackID = if(is.null(x@info$identity)){"unnamed"}else{as.factor(x@info$identity)}
